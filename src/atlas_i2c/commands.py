@@ -105,6 +105,44 @@ class CalibratePh(Command):
         return cmd
 
 
+class CalibrateEC(Command):
+    """Calibrate EC sensor"""
+
+    arguments: Tuple[str, str, str, str, str, str, str] = (
+        "dry",
+        "one",
+        "single",
+        "low",
+        "high",
+        "clear",
+        "?"
+    )
+    name: str = "Cal"
+    processing_delay: int = 600
+
+    @classmethod
+    def format_command(cls, arg: str = "?", setpoint: Optional[int] = None) -> str:
+        twopart = ("one", "single", "low", "high")
+
+        if arg not in cls.arguments:
+            raise ArgumentError(f"{arg} must be one of {cls.arguments}")
+
+        if arg in twopart:
+            if setpoint is None or not isinstance(setpoint, int):
+                raise ArgumentError(f"{setpoint} must be an integer in μS")
+        elif arg != "dry":
+            cls.processing_delay = 300
+
+        cmd = f"{cls.name}"
+
+        if arg in twopart:
+            cmd = ",".join([cmd, arg, str(setpoint)])
+        else:
+            cmd = ",".join([cmd, arg])
+
+        return cmd
+
+
 class DataLogger(Command):
     """Enable/disable data logger."""
 
@@ -248,11 +286,13 @@ class Salinity(Command):
         if not any((question, value)):
             raise ArgumentError(f"You must specify at least one of [value=n | question]")
 
+        formatted_cmd = ""
+
         if value:
             formatted_cmd: str = f"{cls.name},{value}"
 
-        if ppt:
-            formatted_cmd += ",ppt"
+            if ppt:
+                formatted_cmd += ",ppt"
 
         if question:
             formatted_cmd = f"{cls.name},?"
