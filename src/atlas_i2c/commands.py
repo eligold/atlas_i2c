@@ -129,16 +129,16 @@ class CalibrateEC(Command):
 
         if arg in twopart:
             if setpoint is None or not isinstance(setpoint, int):
-                raise ArgumentError(f"{setpoint} must be an integer in μS")
+                raise ArgumentError(f"setpoint {setpoint} must be an integer in μS")
         elif arg != "dry":
             cls.processing_delay = 300
 
         cmd = f"{cls.name}"
 
         if arg in twopart:
+            if setpoint <= 0: raise ArgumentError(f"setpoint must be a sensible value!\t{setpoint}")
             cmd = ",".join([cmd, arg, str(setpoint)])
-        else:
-            cmd = ",".join([cmd, arg])
+        else: cmd = ",".join([cmd, arg])
 
         return cmd
 
